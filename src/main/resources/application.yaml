@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/block_db
+    username: root
+    password: Charansingh16@
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+# Blockchain credential
+b-lock:
+  chain:
+    rpcUrl: "https://polygon-amoy.infura.io/v3/f2e0051e34eb40788fa4d9cb434427d6"
+    privateKey: 9e84e7c31240d1a44d15c3dd3b93f129396b677fbeee2f5b54acd2fdc84c50f5
+    registryAddress: "0xE5eDDD5EAB832a246fAC0961C8B72cc72DF7fF87"
