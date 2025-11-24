@@ -1,105 +1,89 @@
 import { useState } from "react";
-import { api } from "../lib/api";
-import ResultCard from "../components/ResultCard";
+import api from "../api";
 
 export default function VerifyPage() {
   const [hash, setHash] = useState("");
-  const [res, setRes] = useState<any>(null);
+  const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  const go = async () => {
+  const verify = async () => {
+    const clean = hash.trim().toLowerCase();
+    if (!clean) return;
+
     try {
       setLoading(true);
-      const clean = hash.trim().toLowerCase();
+      setResult(null);
 
-      // Basic bytes32 validation
-      if (!clean.startsWith("0x") || clean.length !== 66) {
-        setRes({ verified: false });
-        return;
-      }
-
-      const r = await api.get(`/verify/${clean}`);
-      console.log("VERIFY RESPONSE:", r.data);
-
-      const normalized = {
-        verified: r.data?.verified ?? r.data?.found ?? false,
-        issuer: r.data?.issuer ?? r.data?.credential?.studentWallet ?? null,
-        student: r.data?.student ?? r.data?.credential?.studentName ?? null,
-        issuedAt: r.data?.issuedAt ?? r.data?.credential?.createdAt ?? null,
-        raw: r.data,
-      };
-
-      setRes(normalized);
+      const resp = await api.get(`/verify/${clean}`);
+      setResult(resp.data);
     } catch (err) {
       console.error("VERIFY ERROR:", err);
-      setRes({ verified: false });
+      setResult({ verified: false });
     } finally {
       setLoading(false);
     }
   };
 
-  const disabled = !hash.trim() || loading;
-
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl sm:text-2xl font-semibold text-white mb-1">
-          Verify Credential
-        </h2>
-        <p className="text-sm text-gray-400">
-          Paste the stored file hash to confirm if a credential exists on-chain
-          and view metadata.
-        </p>
-      </div>
+    <div className="p-8 max-w-3xl mx-auto text-white">
 
-      <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
-        <div className="flex-1 flex flex-col gap-1.5">
-          <label className="text-xs uppercase tracking-wide text-gray-400">
-            Credential File Hash (bytes32)
-          </label>
-          <input
-            className="w-full rounded-lg bg-[#0b0615] border border-[#312e81] px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 neon-focus font-mono"
-            placeholder="0x…"
-            value={hash}
-            onChange={(e) => setHash(e.target.value)}
-          />
-        </div>
+      <h1 className="text-3xl font-bold mb-6">Verify Credential</h1>
+
+      <p className="mb-6 text-gray-300">
+        Paste the stored transaction hash to confirm if a credential exists.
+      </p>
+
+      {/* Input */}
+      <div className="flex gap-3 mb-6">
+        <input
+          className="border p-2 w-full rounded bg-black text-white border-gray-600"
+          value={hash}
+          onChange={(e) => setHash(e.target.value)}
+          placeholder="0xabc..."
+        />
 
         <button
-          type="button"
-          onClick={go}
-          disabled={disabled}
-          className={`inline-flex items-center justify-center px-5 py-2.5 rounded-lg text-sm font-medium
-            bg-gradient-to-r from-neon-violet-soft to-neon-cyan text-white
-            shadow-neon-soft hover:shadow-neon-violet transition
-            disabled:opacity-50 disabled:cursor-not-allowed`}
+          onClick={verify}
+          disabled={loading}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
         >
-          {loading ? "Checking…" : "Verify"}
+          {loading ? "Verifying..." : "Verify"}
         </button>
       </div>
 
-      <div className="pt-2">
-        {res && (
-          <div className="space-y-4">
-            <ResultCard
-              ok={res.verified}
-              issuer={res.issuer}
-              student={res.student}
-              issuedAt={res.issuedAt}
-            />
+      {/* Result */}
+      {result && (
+        <div className="mt-6 p-4 bg-gray-900 border border-gray-700 rounded">
 
-            {/* Debug panel – keep for now */}
-            <details className="rounded-xl bg-[#05000f] border border-[#272262] px-3 py-2 text-xs text-gray-300">
-              <summary className="cursor-pointer text-[11px] text-gray-400 mb-1">
-                Raw response (debug)
-              </summary>
-              <pre className="mt-2 max-w-full overflow-auto text-[11px] leading-snug">
-                {JSON.stringify(res.raw, null, 2)}
-              </pre>
-            </details>
-          </div>
-        )}
-      </div>
+          {result.verified ? (
+            <div>
+              <div className="text-green-400 font-semibold mb-3">
+                ✅ Credential Verified
+              </div>
+
+              <div className="mb-2">Student: <b>{result.studentName}</b></div>
+              <div className="mb-2">Program: <b>{result.program}</b></div>
+              <div className="mb-2">
+                Issuer / Wallet: <b>{result.wallet}</b>
+              </div>
+              <div className="mb-2">
+                File Hash: <b>{result.fileHashHex}</b>
+              </div>
+              <div className="mb-2">
+                Transaction Hash: <b>{result.txHash}</b>
+              </div>
+              <div>
+                Issued At:{" "}
+                <b>{new Date(result.issuedAt).toLocaleString()}</b>
+              </div>
+            </div>
+          ) : (
+            <div className="text-red-400 font-semibold">
+              ⚠️ Credential not found.
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

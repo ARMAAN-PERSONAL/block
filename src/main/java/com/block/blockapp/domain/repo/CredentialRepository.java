@@ -8,4 +8,6 @@ import java.util.Optional;
 public interface CredentialRepository extends JpaRepository<Credential, Long> {
 
     Optional<Credential> findByFileHashHex(String fileHashHex);
+    Optional<Credential> findByTxHash(String txHash);
+
 }

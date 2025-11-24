@@ -26,28 +26,17 @@ public class CredentialIssueController {
     private final CredentialService credentialService;
     private final BlockChainService blockChainService;
 
-    // ---------------------------------------------------------------------
-    // 1) ISSUE (BACKEND HASH + SAVE IN DB)
-    // ---------------------------------------------------------------------
     @PostMapping(value = "/issue", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public IssueResponse issue(
             @Valid @RequestPart("meta") IssueRequest meta,
             @RequestPart("pdf") MultipartFile pdf
     ) throws Exception {
 
-        // Compute SHA-256 hash
-        String fileHashHex = hashService.sha256Hex(pdf.getInputStream());
-
-        // Guarantee correct 0x prefix only once
-        if (!fileHashHex.startsWith("0x")) {
-            fileHashHex = "0x" + fileHashHex.toLowerCase();
-        } else {
-            fileHashHex = fileHashHex.toLowerCase();
-        }
+        String fileHashHex = hashService.sha256Hex(pdf.getInputStream()).toLowerCase();
+        if (!fileHashHex.startsWith("0x")) fileHashHex = "0x" + fileHashHex;
 
         System.out.println("BACKEND GENERATED HASH = " + fileHashHex);
 
-        // Build full credential entity
         Credential c = Credential.builder()
                 .studentName(meta.getStudentName())
                 .program(meta.getProgram())
@@ -56,38 +45,40 @@ public class CredentialIssueController {
                 .createdAt(Instant.now())
                 .build();
 
-        // Save correctly
         credentialService.save(c);
 
-        // Return the hash to frontend
         return new IssueResponse(fileHashHex);
     }
 
-    // ---------------------------------------------------------------------
-    // 2) ISSUE ON-CHAIN (BACKEND SIGNS TX)
-    // ---------------------------------------------------------------------
     @PostMapping("/issue-onchain")
     public ResponseEntity<?> issueOnChain(@RequestBody IssueOnChainRequest req) {
         try {
             String fileHashHex = req.getFileHashHex().toLowerCase();
             String studentWallet = req.getStudentWallet();
 
-            System.out.println("ISSUE ON-CHAIN FOR HASH = " + fileHashHex);
+            String txHash = blockChainService.issueCredential(fileHashHex, studentWallet);
 
-            // Send blockchain transaction
-            String txHash = blockChainService.issueCredential(
-                    fileHashHex,
-                    studentWallet
-            );
-
-            // Save txHash to DB
             credentialService.attachTx(fileHashHex, txHash);
 
             return ResponseEntity.ok(Map.of("txHash", txHash));
 
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(500).body("On-chain issue failed");
         }
     }
+
+    // ⭐ VERIFY BY TX_HASH (NOT fileHashHex)
+    @GetMapping("/verify/{txHash}")
+    public ResponseEntity<?> verify(@PathVariable String txHash) {
+
+        String clean = txHash.trim().toLowerCase();
+
+        return credentialService.findByTxHash(clean)
+                .map(c -> ResponseEntity.ok(Map.of(
+                        "verified", true,
+                        "credential", c
+                )))
+                .orElseGet(() -> ResponseEntity.ok(Map.of("verified", false)));
+    }
+
 }

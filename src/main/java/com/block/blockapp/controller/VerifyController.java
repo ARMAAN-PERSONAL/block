@@ -1,43 +1,34 @@
 package com.block.blockapp.controller;
 
-import com.block.blockapp.dto.VerifyResponse;
-import com.block.blockapp.service.ContractReaderService;
+import com.block.blockapp.service.CredentialService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/verify")
 @RequiredArgsConstructor
 public class VerifyController {
 
-    private final ContractReaderService contractReaderService;
+    private final CredentialService credentialService;
 
-    @GetMapping("/{fileHashHex}")
-    public ResponseEntity<?> verify(@PathVariable String fileHashHex) {
-        try {
-            String cleanHash = fileHashHex.trim().toLowerCase();
+    @GetMapping("/{txHash}")
+    public ResponseEntity<?> verify(@PathVariable String txHash) {
 
-            var result = contractReaderService.verify(cleanHash);
+        String clean = txHash.trim().toLowerCase();
 
-            if (result == null) {
-                return ResponseEntity.status(404)
-                        .body("No credential found on-chain for this hash");
-            }
-
-            VerifyResponse response = new VerifyResponse(
-                    result.ok(),
-                    result.issuer(),
-                    result.student(),
-                    result.issuedAt()
-            );
-
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500)
-                    .body("Verification failed: " + e.getMessage());
-        }
+        return credentialService.findByTxHash(clean)
+                .map(c -> ResponseEntity.ok(Map.of(
+                        "verified", true,
+                        "txHash", c.getTxHash(),
+                        "fileHashHex", c.getFileHashHex(),
+                        "studentName", c.getStudentName(),
+                        "program", c.getProgram(),
+                        "wallet", c.getWallet(),
+                        "issuedAt", c.getCreatedAt()
+                )))
+                .orElseGet(() -> ResponseEntity.ok(Map.of("verified", false)));
     }
 }
