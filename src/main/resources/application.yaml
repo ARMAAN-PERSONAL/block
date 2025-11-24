@@ -13,6 +13,6 @@ spring:
 # Blockchain credential
 b-lock:
   chain:
-    rpcUrl: "https://polygon-amoy.infura.io/v3/f2e0051e34eb40788fa4d9cb434427d6"
-    privateKey: 9e84e7c31240d1a44d15c3dd3b93f129396b677fbeee2f5b54acd2fdc84c50f5
-    registryAddress: "0xE5eDDD5EAB832a246fAC0961C8B72cc72DF7fF87"
+    rpcUrl: "https://polygon-amoy.infura.io/v3/2321a64be7934226b329b91595d3be23" #devansh
+    privateKey: 6f50b4b221a8846feb0d9e3e3558f3deb339e63aa5f3efcbb542ec2c12e7afd4 #devansh
+    registryAddress: "0xE5eDDD5EAB832a246fAC0961C8B72cc72DF7fF87" #armaan
