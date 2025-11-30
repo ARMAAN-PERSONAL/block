@@ -2,50 +2,187 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Global dark neon background */
+/* Discord-inspired dark theme */
 :root {
   color-scheme: dark;
+  --blurple: #5865F2;
+  --blurple-dark: #4752C4;
+  --blurple-light: #7289DA;
 }
 
 body {
-  @apply bg-bg text-gray-100 font-sans;
+  @apply bg-discord-dark text-discord-text font-sans antialiased;
+  background: linear-gradient(180deg, #0d1117 0%, #080b0f 100%);
+  min-height: 100vh;
 }
 
-/* Scrollbar styling (optional but looks nice in dark themes) */
+/* Custom scrollbar - Discord style */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
+
 ::-webkit-scrollbar-track {
-  background: #05010a;
+  background: #0d1117;
+  border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #4c1d95;
-  border-radius: 999px;
+  background: #30363d;
+  border-radius: 4px;
 }
 
-/* Neon helpers */
+::-webkit-scrollbar-thumb:hover {
+  background: #484f58;
+}
+
+/* Discord-style utilities */
+@layer utilities {
+  /* Blurple gradient text */
+  .gradient-text {
+    background: linear-gradient(135deg, #5865F2 0%, #EB459E 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Subtle glow effect for headings */
+  .discord-glow-text {
+    text-shadow: 0 0 30px rgba(88, 101, 242, 0.5);
+  }
+
+  /* Glass morphism card effect */
+  .glass-card {
+    background: rgba(22, 27, 34, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(48, 54, 61, 0.8);
+  }
+
+  /* Discord-style hover lift */
+  .hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(88, 101, 242, 0.25);
+  }
+
+  /* Blurple border glow on focus */
+  .discord-focus:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(88, 101, 242, 0.5);
+    border-color: #5865F2;
+  }
+
+  /* Animated gradient border */
+  .gradient-border {
+    position: relative;
+    background: #161b22;
+    border-radius: 12px;
+  }
+
+  .gradient-border::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: 13px;
+    padding: 1px;
+    background: linear-gradient(135deg, #5865F2, #EB459E, #00AFF4);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Shimmer loading effect */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(88, 101, 242, 0) 0%,
+      rgba(88, 101, 242, 0.3) 50%,
+      rgba(88, 101, 242, 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+  }
+
+  /* Discord button styles */
+  .btn-discord {
+    @apply px-5 py-2.5 rounded-lg font-medium transition-all duration-200;
+    @apply bg-blurple hover:bg-blurple-dark active:bg-blurple-dark;
+    @apply text-white shadow-discord-glow;
+  }
+
+  .btn-discord:hover {
+    @apply shadow-discord-glow-strong;
+  }
+
+  .btn-discord:disabled {
+    @apply opacity-50 cursor-not-allowed shadow-none;
+  }
+
+  /* Input field styling */
+  .input-discord {
+    @apply w-full px-4 py-3 rounded-lg transition-all duration-200;
+    @apply bg-discord-darker border border-discord-border;
+    @apply text-discord-text placeholder-discord-text-faint;
+    @apply focus:outline-none focus:border-blurple focus:ring-2 focus:ring-blurple/30;
+  }
+
+  /* Card hover effect */
+  .card-hover {
+    @apply transition-all duration-200 ease-out;
+  }
+
+  .card-hover:hover {
+    @apply bg-discord-card-hover;
+    box-shadow: 0 0 20px rgba(88, 101, 242, 0.15);
+  }
+
+  /* Success state */
+  .status-success {
+    @apply border-discord-green bg-discord-green/10;
+    box-shadow: 0 0 20px rgba(59, 165, 92, 0.2);
+  }
+
+  /* Error state */
+  .status-error {
+    @apply border-discord-red bg-discord-red/10;
+    box-shadow: 0 0 20px rgba(237, 66, 69, 0.2);
+  }
+}
+
+/* Smooth page transitions */
+.page-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Legacy class support for backwards compatibility */
 .neon-text {
-  text-shadow: 0 0 12px rgba(168, 85, 247, 0.9);
-}
-
-.neon-border {
-  box-shadow: 0 0 18px rgba(124, 58, 237, 0.8);
+  @apply discord-glow-text;
 }
 
 .neon-border-soft {
-  box-shadow: 0 0 22px rgba(248, 113, 113, 0.4);
+  box-shadow: 0 0 22px rgba(88, 101, 242, 0.3);
 }
 
-.neon-focus:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.9), 0 0 18px rgba(124, 58, 237, 0.9);
+.shadow-neon-red {
+  box-shadow: 0 0 18px rgba(237, 66, 69, 0.5);
 }
 
-/* Subtle card hover */
-.card-hover {
-  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+.shadow-neon-soft {
+  box-shadow: 0 0 24px rgba(114, 137, 218, 0.3);
 }
-.card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 20px rgba(124, 58, 237, 0.45);
+
+.shadow-neon-violet {
+  box-shadow: 0 0 18px rgba(88, 101, 242, 0.5);
 }
